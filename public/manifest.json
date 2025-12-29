@@ -1,0 +1,54 @@
+{
+    "name": "Karma",
+    "short_name": "Karma",
+    "id": "/login",
+    "start_url": "/login",
+    "scope": "/",
+    "display": "standalone",
+    "theme_color": "#8936FF",
+    "background_color": "#2EC6FE",
+    "description": "Be Yogi, I Will Handle Your Karma",  
+    "orientation": "any",
+    "dir": "auto",
+    "lang": "en-US",
+    "icons": [
+      {
+        "src": "/icons/infinity.png",  
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/icons/icon512_rounded.png",  
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/icons/icon512_maskable.png",  
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+      }
+    ],
+    "screenshots": [
+      {
+        "src": "/screenshots/mobile.jpg",  
+        "sizes": "720x1600",
+        "type": "image/jpeg", 
+        "form_factor": "narrow"
+      },
+      {
+        "src": "/screenshots/desktop.png",
+        "sizes": "1920x1080",
+        "type": "image/png",
+        "form_factor": "wide"
+      }
+    ],
+    "protocol_handlers": [
+      {
+        "protocol": "web+karma",
+        "url": "/login?url=%s"
+      }
+    ]
+  }
