@@ -1,7 +1,7 @@
 "use client"
 
 import { Link, useLocation } from "react-router-dom"
-import { cn } from "../../src/lib/utils"
+import { cn } from "@lib/utils"
 import {
   LayoutDashboard,
   Users,
@@ -16,7 +16,7 @@ import {
   ClipboardList,
   Activity,
   ScrollText,
-} from "../../src/lib/lucide-stub.jsx"
+} from "@lib/lucide-stub"
 
 const navItems = [
   {
@@ -66,11 +66,11 @@ export function SidebarNav() {
   const pathname = useLocation().pathname
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:pt-16 border-r border-border bg-sidebar">
-      <nav className="flex-1 overflow-y-auto py-6 px-4">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:pt-16 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+      <nav className="flex-1 overflow-y-auto py-6 px-3">
         {navItems.map((section) => (
           <div key={section.title} className="mb-6">
-            <h3 className="px-3 mb-2 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+            <h3 className="px-4 mb-3 text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase">
               {section.title}
             </h3>
             <ul className="space-y-1">
@@ -81,10 +81,10 @@ export function SidebarNav() {
                     <Link
                       to={item.href}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                        "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                         isActive
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-purple-500/30"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800",
                       )}
                     >
                       <item.icon className="h-4 w-4" />
@@ -97,7 +97,7 @@ export function SidebarNav() {
           </div>
         ))}
       </nav>
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
         <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted/50">
           <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
           <span className="text-xs font-mono text-muted-foreground">v2.4.1 | PROD</span>

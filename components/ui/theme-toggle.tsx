@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useTheme } from "next-themes"
-import { Moon, Sun } from "../../src/lib/lucide-stub.jsx"
+import { Moon, Sun } from "@lib/lucide-stub.jsx"
 import { Switch } from "./switch"
 
 export function ThemeToggle() {

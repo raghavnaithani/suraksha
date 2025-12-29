@@ -121,7 +121,7 @@ import {
   ChevronRightIcon,
   MoreHorizontal,
   ChevronDownIcon,
-} from '../../src/lib/lucide-stub.jsx'
+} from '@lib/lucide-stub.jsx'
   PaginationNext,
   PaginationEllipsis,
 }

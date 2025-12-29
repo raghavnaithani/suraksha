@@ -26,6 +26,7 @@ import { TrustScore } from "@components/ui/trust-score"
 import { StatusBadge } from "@components/ui/status-badge"
 import { Link } from "react-router-dom"
 import { apiPost } from "@lib/use-api"
+import { useAuth } from '@lib/auth-context'
 
 type VerificationState = "idle" | "scanning" | "processing" | "result"
 type VerificationResult = "GREEN" | "YELLOW" | "RED" | null
@@ -71,6 +72,7 @@ export default function VerificationTerminal() {
   const [verificationData, setVerificationData] = useState<VerificationResponse | null>(null)
   const [manualInput, setManualInput] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const auth = useAuth()
 
   const performVerification = async (workerId: string) => {
     setState("scanning")
@@ -80,15 +82,47 @@ export default function VerificationTerminal() {
     setState("processing")
 
     try {
-      const response = await apiPost("/api/verify", {
+      // Prevent anonymous users from performing verification
+      if (auth?.user?.identityMode === 'anonymous') {
+        setError('Anonymous users have limited access. Please login to verify identities.')
+        setState('idle')
+        return
+      }
+
+      // Provide a demoResult hint for local dev (mapping demo IDs to results)
+      let demoResult: any = undefined
+      if (workerId.startsWith('PHONE:')) {
+        const num = workerId.split(':')[1] || ''
+        const last4 = num.slice(-4)
+        demoResult = last4 === '9999' ? 'GREEN' : last4 === '8888' ? 'YELLOW' : last4 === '7777' ? 'RED' : undefined
+      } else if (workerId.startsWith('AADHAAR:')) {
+        const a = workerId.split(':')[1] || ''
+        const last4 = a.slice(-4)
+        demoResult = last4 === '4444' ? 'GREEN' : last4 === '5555' ? 'YELLOW' : last4 === '6666' ? 'RED' : undefined
+      } else {
+        demoResult = workerId.includes("001234")
+          ? "GREEN"
+          : workerId.includes("005678")
+          ? "YELLOW"
+          : workerId.includes("007890")
+          ? "RED"
+          : undefined
+      }
+
+      const payload: any = {
         workerId: workerId || "NWIR-2024-001234",
         verifierId: "terminal_001",
         verifierRole: "employer",
         location: { lat: 28.6139, lng: 77.209 },
-      })
+      }
+      if (demoResult) payload.demoResult = demoResult
 
+      console.log('[Verification] performing verification', payload)
+      const response = await apiPost("/api/verify", payload)
+
+      console.log('[Verification] response', response)
       setVerificationData(response)
-      setResult(response.result)
+      setResult(response.result as VerificationResult)
       setState("result")
     } catch (err) {
       setError("Verification failed. Please try again.")
@@ -173,6 +207,14 @@ export default function VerificationTerminal() {
                   <Keyboard className="h-4 w-4" />
                   MANUAL ID
                 </TabsTrigger>
+                <TabsTrigger value="phone" className="font-mono text-xs gap-2">
+                  <MapPin className="h-4 w-4" />
+                  PHONE
+                </TabsTrigger>
+                <TabsTrigger value="aadhaar" className="font-mono text-xs gap-2">
+                  <Fingerprint className="h-4 w-4" />
+                  AADHAAR
+                </TabsTrigger>
                 <TabsTrigger value="face" className="font-mono text-xs gap-2">
                   <Camera className="h-4 w-4" />
                   FACE SCAN
@@ -203,6 +245,50 @@ export default function VerificationTerminal() {
                       <ScanLine className="h-5 w-5" />
                       START SCANNING
                     </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="phone">
+                <Card className="glow-border">
+                  <CardHeader className="text-center">
+                    <CardTitle className="flex items-center justify-center gap-2">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      Phone Verification
+                    </CardTitle>
+                    <CardDescription>Verify worker by registered phone number</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center">
+                    <div className="w-full max-w-md space-y-4">
+                      <Input placeholder="Phone (e.g., 9999999999)" className="text-center" onChange={(e)=>{}} />
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => performVerification('PHONE:9999999999')}>Demo: GREEN</Button>
+                        <Button variant="outline" size="sm" onClick={() => performVerification('PHONE:8888888888')}>Demo: YELLOW</Button>
+                        <Button variant="outline" size="sm" onClick={() => performVerification('PHONE:7777777777')}>Demo: RED</Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="aadhaar">
+                <Card className="glow-border">
+                  <CardHeader className="text-center">
+                    <CardTitle className="flex items-center justify-center gap-2">
+                      <Fingerprint className="h-5 w-5 text-primary" />
+                      Aadhaar Matching
+                    </CardTitle>
+                    <CardDescription>Verify worker by Aadhaar (16 digits)</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center">
+                    <div className="w-full max-w-md space-y-4">
+                      <Input placeholder="Enter 16-digit Aadhaar" className="text-center" onChange={(e)=>{}} />
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => performVerification('AADHAAR:1111222233334444')}>Demo: GREEN</Button>
+                        <Button variant="outline" size="sm" onClick={() => performVerification('AADHAAR:2222333344445555')}>Demo: YELLOW</Button>
+                        <Button variant="outline" size="sm" onClick={() => performVerification('AADHAAR:3333444455556666')}>Demo: RED</Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

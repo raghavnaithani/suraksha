@@ -42,3 +42,6 @@ export const {
 } = exportsObj
 
 export const { ChevronLeftIcon, MoreHorizontalIcon, ArrowLeft, ArrowRight, PanelLeftIcon, Loader2Icon, GripVerticalIcon, XIcon, MoreHorizontal } = exportsObj
+
+// Provide an `X` alias used by some components (e.g., toast)
+export const X = exportsObj.XIcon ?? make('X')

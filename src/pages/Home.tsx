@@ -11,8 +11,8 @@ export default function Home() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Welcome{auth.user ? `, ${auth.user.name}` : ''}!</h2>
-          <p className="text-muted-foreground">Dashboard overview</p>
+          <h2 className="text-3xl font-bold">Welcome{auth.user ? `, ${auth.user.name}` : ''}!</h2>
+          <p className="text-gray-600">Dashboard overview</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => auth.logout()}>Sign out</Button>
@@ -25,7 +25,7 @@ export default function Home() {
             <CardTitle>Verification Terminal</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Quick access to terminal</p>
+            <p className="text-sm text-gray-600">Quick access to terminal</p>
             <div className="mt-4">
               <Link to="/verify">
                 <Button>Open Terminal</Button>
@@ -38,7 +38,7 @@ export default function Home() {
             <CardTitle>History</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">View past verifications and reports</p>
+            <p className="text-sm text-gray-600">View past verifications and reports</p>
             <div className="mt-4">
               <Link to="/verify/history">
                 <Button variant="outline">Open History</Button>
@@ -51,7 +51,7 @@ export default function Home() {
             <CardTitle>System</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">System status and logs</p>
+            <p className="text-sm text-gray-600">System status and logs</p>
           </CardContent>
         </Card>
       </div>

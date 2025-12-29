@@ -1,14 +1,8 @@
-export function cn(...inputs: any[]) {
-  const classes: string[] = []
-  for (const input of inputs.flat()) {
-    if (!input) continue
-    if (typeof input === 'string') classes.push(input)
-    else if (Array.isArray(input)) classes.push(...input.filter(Boolean))
-    else if (typeof input === 'object') {
-      for (const [k, v] of Object.entries(input)) if (v) classes.push(k)
-    }
-  }
-  return classes.join(' ')
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
 
 export function downloadJson(data: unknown, filename = 'data.json') {
