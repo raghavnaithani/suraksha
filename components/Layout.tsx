@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Link } from 'react-router-dom'
 import SosButton from "./ui/sos-button";
 import { Toaster } from "./ui/toaster";
 import { startProcessor, flushQueue } from "../src/lib/sos-queue";
@@ -8,8 +9,20 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-white">
       <nav className="border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">NWIR</h1>
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">NWIR</h1>
+            <Link to="/" className="text-sm text-gray-700 hover:underline">Home</Link>
+            <Link to="/sos" className="text-sm text-gray-700 hover:underline">SOS</Link>
+            <Link to="/assist" className="text-sm text-gray-700 hover:underline">Assist</Link>
+            <Link to="/complaints" className="text-sm text-gray-700 hover:underline">Complaints</Link>
+            <Link to="/verify" className="text-sm text-gray-700 hover:underline">Verify</Link>
+            <Link to="/rights" className="text-sm text-gray-700 hover:underline">Rights</Link>
+            <Link to="/dashboard" className="text-sm text-gray-700 hover:underline">Dashboard</Link>
+          </div>
+          <div>
+            <Link to="/dev/logs" className="text-sm text-gray-500 hover:underline">Dev Logs</Link>
+          </div>
         </div>
       </nav>
       <main className="max-w-7xl mx-auto px-4 py-8">

@@ -69,6 +69,174 @@ Files: [components/ui/toast.tsx](components/ui/toast.tsx), [components/ui/toaste
 
 ---
 
+## User & Developer Flows (Feature-by-feature)
+
+Below are step-by-step flows written from the user's perspective together with the corresponding developer checks and expected results. Use these as test scripts or documentation for testers.
+
+1) App entry / Home
+- User flow:
+  - Open `/` in a browser (http://localhost:5173).
+  - See the app header, navigation, and the Home screen contents.
+  - Toast area and floating SOS button should be present.
+- Expected user result:
+  - Page loads without the Vite error overlay.
+  - Navigation links (Login, Verify, SOS, Complaints, Assist) are visible and clickable.
+- Dev flow / checks:
+  - Verify no unresolved import errors in browser console.
+  - Confirm `Toaster` component mounted by inspecting page DOM or seeing toasts on actions.
+
+2) Login / Identity Modes
+- User flow:
+  - Open `/login`.
+  - Choose identity mode: `OTP`, `Aadhaar`, `Worker`, or `Anonymous`.
+  - Follow on-screen prompts (OTP input, Aadhaar input + consent, or quick anonymous continue).
+- Expected user result:
+  - OTP mode: after entering the OTP the user is signed in and redirected to Home.
+  - Aadhaar mode: Aadhaar number validated client-side, consent modal shown, then masked ID stored for session display (last 4 digits only).
+  - Anonymous: limited UI access is permitted; some features (e.g., long-term complaint tracking) are restricted.
+- Dev flow / checks:
+  - Ensure validation functions in `src/Login.tsx` enforce digit-only Aadhaar and required lengths.
+  - Confirm session state updates in `lib/auth-context.tsx` and that ProtectedRoute uses it to gate routes.
+
+3) Verification Terminal
+- User flow:
+  - Open `/verify`.
+  - Use demo buttons (GREEN/YELLOW/RED) to simulate verification results or enter search parameters and run a verification.
+- Expected user result:
+  - A result panel shows worker info, trust score, risk flags, and human-friendly guidance.
+  - No crashes — when backend is missing the UI displays a mock result with `requestId` starting with `mock-`.
+- Dev flow / checks:
+  - `lib/use-api.ts` returns a deterministic mock for `/api/verify` when network requests fail.
+  - Confirm event `apiPost` or verification-specific events are recorded in `app_event_log`.
+
+4) Quick SOS (floating button + /sos)
+- User flow:
+  - On any page, click the floating SOS button (bottom-right) or navigate to `/sos`.
+  - Fill the minimal required fields and tap Submit.
+- Expected user result:
+  - If online and backend reachable: toast shows "SOS sent"; no local queue entry.
+  - If offline or backend fails: toast shows "SOS queued"; queue badge increments and entry saved to `suraksha_sos_queue`.
+- Dev flow / checks:
+  - Inspect localStorage: `localStorage.getItem('suraksha_sos_queue')` contains new entry when offline.
+  - Event logger records `apiPost_sos_request` and on failure `apiPost_sos_enqueue_failed` or `apiPost_sos_queued`.
+  - `src/lib/sos-queue.ts` returns queue length and implements `enqueue`, `flushQueue`, `startProcessor`.
+
+5) Assisted Emergency Reporting (`/assist`)
+- User flow:
+  - Navigate to `/assist`.
+  - Step 1: enter Location → Next.
+  - Step 2: enter Description and optional Contact → Send SOS.
+  - Step 3: confirmation and optional "Report another".
+- Expected user result:
+  - Stepper advances; toast shows success (or queued) and final confirmation displayed.
+  - Event `assisted_sos_sent` recorded.
+- Dev flow / checks:
+  - `src/components/assist/AssistedReport.tsx` calls `apiPost('/api/sos')` and handles both network success and queued fallback paths.
+  - Confirm dynamic import to `lib/event-logger` logs the event successfully.
+
+6) SOS Queue Inspector (`/sos/queue`)
+- User flow:
+  - Open `/sos/queue` to view queued entries.
+  - Optionally flush or remove items (if controls exist).
+- Expected user result:
+  - A list of queued items with timestamps, payload preview and count.
+  - Badge on floating SOS button reflects queue length.
+- Dev flow / checks:
+  - Verify `suraksha_sos_queue` in localStorage matches UI list.
+  - When online, calling `flushQueue()` (automatically or manually) POSTs entries and removes them on success.
+
+7) Complaints (index + dynamic `ComplaintForm`)
+- User flow:
+  - Open `/complaints` to see list of complaint types.
+  - Click "Start" on a type → navigates to `/complaints/new/:typeId` and shows a dynamic form.
+  - Fill fields and Submit.
+- Expected user result:
+  - The form shows schema title/description and appropriate inputs (text, textarea, date, select, phone).
+  - Toast "Complaint submitted" on success; or "Submission failed" when offline with fallback behavior.
+- Dev flow / checks:
+  - `src/lib/complaint-types.ts` defines `COMPLAINT_TYPES` and field schemas.
+  - `src/components/complaints/ComplaintForm.tsx` renders fields dynamically and posts to `/api/complaints` via `apiPost`.
+  - Event `complaint_submitted` is recorded in `app_event_log` with payload containing `type` and `values`.
+
+8) Event Log / Dev logs (`/dev/logs`)
+- User flow:
+  - Open `/dev/logs` (protected route) to view chronological client-side events.
+  - Optionally download or clear logs.
+- Expected user result:
+  - Events show timestamp, type, and payload (SOS queued, flush attempts, complaints, verify actions).
+- Dev flow / checks:
+  - Confirm `src/lib/event-logger.ts` persists events under `app_event_log` and emits `appEventLogged` for real-time UI updates.
+  - The event list UI reads `getEvents()` and supports `clearEvents()` and `downloadEvents()` operations.
+
+9) Toasts & Notifications
+- User flow:
+  - Actions like sending SOS, submitting complaints, or verification produce a short toast message.
+- Expected user result:
+  - Single toast visible (TOAST_LIMIT = 1) with title and optional description.
+  - Toast includes gentle guidance (e.g., "Saved locally and will retry").
+- Dev flow / checks:
+  - Verify `components/ui/use-toast.ts` exposes `useToast()` and `toast()` helpers.
+  - Inspect memory state and dispatched toasts in the in-memory store while testing.
+
+---
+
+## How to Use These Flows for Testing (Checklist)
+- Manual test steps (one-liners):
+  - Home load: open `/` → expect header + no overlay.
+  - Identity: `/login` → test OTP, Aadhaar (consent), Anonymous.
+  - Verify: `/verify` → click GREEN/YELLOW/RED → see result card.
+  - SOS quick: Click floating SOS → submit → check toast and `suraksha_sos_queue` when offline.
+  - Assisted: `/assist` → complete 3-step wizard → confirm toast & event.
+  - Queue inspector: `/sos/queue` → view items → go online → expect auto-flush.
+  - Complaints: `/complaints` → Start → fill form → submit → check event log.
+  - Dev logs: `/dev/logs` → verify events present.
+
+  ## Header Navigation (Top Bar)
+
+  - Where you see it:
+    - The header/top navigation is rendered by `components/Layout.tsx` and appears on pages wrapped with `Layout` (for example: `/`, `/sos`, `/assist`, `/complaints`, `/sos/queue`, `/dev/logs`, `/verify`, `/rights`, `/dashboard`).
+    - Pages that do NOT use `Layout` (for example `/login`, `/pwa/anonymous`, `/sos-anonymous`) will not show the top bar.
+
+  - Buttons/links available in the top bar:
+    - Home — `/`
+    - SOS — `/sos`
+    - Assist — `/assist`
+    - Complaints — `/complaints`
+    - Verify — `/verify`
+    - Rights — `/rights`
+    - Dashboard — `/dashboard`
+    - Dev Logs — `/dev/logs` (on the right side)
+
+  - Notes for users:
+    - The floating SOS button (bottom-right) is separate and always present when `Layout` is used.
+    - Use the top bar for quick navigation during testing and demos.
+
+
+## Dev Notes: Where to look in code
+- `lib/use-api.ts` — central `apiPost` with mocks for `/api/verify` and delegate for `/api/sos`.
+- `src/lib/sos-queue.ts` — queue manager (enqueue, getQueueLength, flushQueue, startProcessor)
+- `src/lib/event-logger.ts` — persistent client event log
+- `src/lib/complaint-types.ts` — complaint schema definitions and field types
+- `src/components/*` — UI components (Layout, SOS button, ComplaintForm, AssistedReport, Toaster)
+
+## Common Troubleshooting Steps (for testers)
+- If you see a Vite overlay complaining about unresolved import:
+  - Note the file path and missing module. Many imports use aliases `@lib/*` mapped to `lib/*` in `tsconfig.json` — ensure the import matches either `@lib/...` or `../..` relative path to existing file.
+  - Hard-refresh the page and restart the dev server if HMR doesn't clear the overlay.
+- If queued items are not flushing when online:
+  - Check console for `flush_on_online_failed` events.
+  - Inspect `suraksha_sos_queue` and run `flushQueue()` from the console by importing the module in dev tools if needed.
+
+---
+
+If you'd like, I can now:
+- Add a short printable tester checklist file (`TESTING_GUIDE.md`) with the above steps condensed. 
+- Commit these doc changes and stage them for your review. 
+
+Tell me which of those you want next (create checklist, commit & push, or continue implementing Contextual Warnings). 
+
+---
+
 ## Developer Tools & Debugging Pages
 
 - Event Log (dev): a protected route that shows stored events and allows download/clear. Events are stored in `localStorage` under key `app_event_log`.

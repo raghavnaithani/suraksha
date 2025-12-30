@@ -11,6 +11,10 @@ import SosPage from './sos/page'
 import PwaAnonymous from './pwa/anonymous'
 import SosQueueInspector from './sos/queue'
 import DevLogs from './dev/logs'
+import AssistPage from './assist/page'
+import ComplaintsIndex from './complaints/page'
+import RightsPage from './rights/page'
+import DashboardPage from './dashboard/page'
 // app-level styles moved to /styles
 import '../styles/App.css'
 
@@ -52,12 +56,53 @@ export default function App(): JSX.Element {
         }
       />
       <Route
+        path="/assist"
+        element={
+          <ProtectedRoute>
+            <AssistPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/complaints"
+        element={
+          <ProtectedRoute>
+            <ComplaintsIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/complaints/new/:typeId"
+        element={
+          <ProtectedRoute>
+            {/* ComplaintForm is rendered in page wrapper which picks schema from route */}
+            <ComplaintsIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/sos/queue"
         element={
           <ProtectedRoute>
             <Layout>
               <SosQueueInspector />
             </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/rights"
+        element={
+          <ProtectedRoute>
+            <RightsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
           </ProtectedRoute>
         }
       />
